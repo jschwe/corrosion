@@ -45,6 +45,7 @@ impl Platform {
                 }
                 OS::MacOS => (
                     vec![
+                        "System".to_string(),
                         "resolv".to_string(),
                         "c".to_string(),
                         "m".to_string(),
