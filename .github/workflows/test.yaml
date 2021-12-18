@@ -2,7 +2,7 @@ name: Tests
 on:
   push:
     branches:
-      - master
+      - '*'
   pull_request:
     branches:
       - '*'
@@ -18,27 +18,27 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - windows-latest
-          - ubuntu-latest
+          #- windows-latest
+          #- ubuntu-latest
           - macos-latest
         arch:
           - x86_64
-          - i686
-          - aarch64
-          - powerpc64le
+          #- i686
+          #- aarch64
+          #- powerpc64le
         abi:
-          - gnu
+          #- gnu
           - darwin
-          - msvc
+          #- msvc
         cmake:
-          - 3.12.4
-          - 3.18.0
+          #- 3.12.4
+          #- 3.18.0
           - 3.19.0
         rust:
-          - 1.44.1 # Earliest targeted version
-          - 1.45.0 # Earliest version compatible with Windows GNU
+          #- 1.44.1 # Earliest targeted version
+          #- 1.45.0 # Earliest version compatible with Windows GNU
           - stable
-          - nightly
+          #- nightly
         generator:
           - default # This is just whatever the platform default is
           - ninja
