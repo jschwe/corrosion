@@ -20,7 +20,7 @@ jobs:
         os:
           #- windows-latest
           #- ubuntu-latest
-          - macos-10
+          - macos-10.15
         arch:
           - x86_64
           #- i686
@@ -254,7 +254,7 @@ jobs:
         os:
           #- windows-latest
           #- ubuntu-latest
-          - macos-10
+          - macos-10.15
         method:
           - subdirectory
           - install
