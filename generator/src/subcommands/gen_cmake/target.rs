@@ -164,12 +164,17 @@ _add_cargo_build(
 ",
             self.cargo_package.name,
             self.cargo_target.name,
-            self.cargo_package
-                .manifest_path
-                .as_str()
-                .replace("\\", "/"),
+            self.cargo_package.manifest_path.as_str().replace("\\", "/"),
             byproducts.join(" ")
         )?;
+
+        if platform.is_macos() {
+            writeln!(
+                out_file,
+                "find_library (MACOS_SYSTEM_LIB System \
+                /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib)"
+            )?;
+        }
 
         match self.target_type {
             CargoTargetType::Library {
