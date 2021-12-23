@@ -281,6 +281,13 @@ endif()",
                      add_dependencies({0} cargo-build_{0})",
                     self.cargo_target.name
                 )?;
+                if platform.is_macos() {
+                    writeln!(
+                        out_file,
+                        "target_link_libraries({0} ${{MACOS_SYSTEM_LIB}})",
+                        self.cargo_target.name,
+                    )?;
+                }
             }
         }
 
