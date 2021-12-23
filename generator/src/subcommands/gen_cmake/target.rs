@@ -200,6 +200,14 @@ _add_cargo_build(
                             self.cargo_target.name,
                             platform.libs.join(" ")
                         )?;
+                        if platform.is_macos() {
+                            writeln!(
+                                out_file,
+                                "set_property(TARGET {0}-static PROPERTY INTERFACE_LINK_LIBRARIES \
+                                 ${{MACOS_SYSTEM_LIB}})",
+                                self.cargo_target.name,
+                            )?;
+                        }
                     }
 
                     if !platform.libs_debug.is_empty() {
