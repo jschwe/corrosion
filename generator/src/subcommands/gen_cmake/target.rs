@@ -171,8 +171,10 @@ _add_cargo_build(
         if platform.is_macos() {
             writeln!(
                 out_file,
-                "find_library (MACOS_SYSTEM_LIB System \
-                /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib)"
+                "find_library(MACOS_SYSTEM_LIB System \
+                /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib)\n
+                message(WARNING \"MACOS_SYSTEM_LIB is ${MACOS_SYSTEM_LIB}\")
+                message(WARNING \"MACOS_SYSTEM_LIB-NOTFOUND is §{MACOS_SYSTEM_LIB-NOTFOUND}\""
             )?;
         }
 
