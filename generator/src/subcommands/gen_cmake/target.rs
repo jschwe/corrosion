@@ -284,7 +284,7 @@ endif()",
                 if platform.is_macos() {
                     writeln!(
                         out_file,
-                        "target_link_libraries({0} ${{MACOS_SYSTEM_LIB}})",
+                        "target_link_libraries({0} INTERFACE ${{MACOS_SYSTEM_LIB}})",
                         self.cargo_target.name,
                     )?;
                 }
