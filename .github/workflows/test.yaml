@@ -6,9 +6,6 @@ on:
   pull_request:
     branches:
       - '*'
-defaults:
-  run:
-    shell: bash
 jobs:
   test:
     name: Test Corrosion
@@ -106,6 +103,7 @@ jobs:
     steps:
       - name: Determine Rust OS
         id: determine_rust_os
+        shell: bash
         run: |
           if [ "${{ runner.os }}" == "Windows" ]; then
             echo "::set-output name=os::pc-windows"
@@ -119,6 +117,7 @@ jobs:
           fi
       - name: Pick Compiler
         id: pick_compiler
+        shell: bash
         run: |
           if [ "${{ matrix.abi }}" == "gnu" ]; then
             if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
@@ -138,6 +137,7 @@ jobs:
           fi
       - name: Pick Generator
         id: pick_generator
+        shell: bash
         run: |
           if [ "${{ matrix.generator }}" == "ninja" ]; then
             echo "::set-output name=generator::-GNinja"
@@ -146,6 +146,7 @@ jobs:
           fi
       - name: CMake Build Flags
         id: cmake_build_flags
+        shell: bash
         run: |
           if [ "${{ matrix.cmake }}" != "3.12.4" ]; then
             echo "::set-output name=cmake_build_flags::--verbose"
@@ -154,6 +155,7 @@ jobs:
           fi
       - name: Arch Flags
         id: arch_flags
+        shell: bash
         run: | # Cross-compiling is currently only supported on Windows+MSVC with the default generator
           if [ "${{ runner.os }}" == "Windows" ]; then
             if [ "${{matrix.generator}}" == "default" ]; then
@@ -175,7 +177,7 @@ jobs:
             echo "::set-output name=cmake::-DRust_CARGO_TARGET=${{matrix.arch}}-${{steps.determine_rust_os.outputs.os}}-${{matrix.abi}}"
           fi
       - name: Setup MSVC Development Environment
-        uses: ilammy/msvc-dev-cmd@v1.4.1
+        uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ steps.arch_flags.outputs.msvc }}
         if: ${{ 'msvc' == matrix.abi }}
@@ -200,46 +202,48 @@ jobs:
       - name: Rust Version
         run: rustc +${{matrix.rust}} --version
       - name: Configure
-        run: |
-          cmake \
-            -H. \
-            -Bbuild \
-            -DCORROSION_VERBOSE_OUTPUT=ON \
-            ${{ steps.arch_flags.outputs.cmake }} \
-            ${{ steps.pick_compiler.outputs.c_compiler }} \
-            ${{ steps.pick_compiler.outputs.cxx_compiler }} \
-            ${{ steps.pick_compiler.outputs.system_name }} \
-            ${{ steps.pick_generator.outputs.generator }} \
-            -DRust_TOOLCHAIN=${{matrix.rust}}
+        run: >
+          cmake
+          -H.
+          -Bbuild
+          -DCORROSION_VERBOSE_OUTPUT=ON
+          ${{ steps.arch_flags.outputs.cmake }}
+          ${{ steps.pick_compiler.outputs.c_compiler }}
+          ${{ steps.pick_compiler.outputs.cxx_compiler }}
+          ${{ steps.pick_compiler.outputs.system_name }}
+          ${{ steps.pick_generator.outputs.generator }}
+          -DRust_TOOLCHAIN=${{matrix.rust}}
       - name: Run Config Tests (x86_64 Only)
-        run: |
+        run: >
           cd build
-          cmake \
-            --build . ${{steps.cmake_build_flags.outputs.cmake_build_flags}} \
-            --target test-install
+
+          cmake
+          --build . ${{steps.cmake_build_flags.outputs.cmake_build_flags}}
+          --target test-install
+          
           ctest --verbose --build-config Debug
         if: ${{ 'x86_64' == matrix.arch && !('windows-latest' == matrix.os && 'gnu' == matrix.abi) && '3.12.4' != matrix.cmake }}
       - name: Build C++ program linking Rust
-        run: |
-          cmake \
-            --build build ${{steps.cmake_build_flags.outputs.cmake_build_flags}} \
-            --target cpp-exe
+        run: >
+          cmake
+          --build build ${{steps.cmake_build_flags.outputs.cmake_build_flags}}
+          --target cpp-exe
       - name: Build Rust program linking C++
-        run: |
-          cmake \
-            --build build ${{steps.cmake_build_flags.outputs.cmake_build_flags}} \
-            --target cargo-build_rust-exe
+        run: >
+          cmake
+          --build build ${{steps.cmake_build_flags.outputs.cmake_build_flags}}
+          --target cargo-build_rust-exe
       - name: Build Rust cdylib and link against C++
-        run: |
-          cmake \
-            --build build ${{steps.cmake_build_flags.outputs.cmake_build_flags}} \
-            --target my_program
+        run: >
+          cmake
+          --build build ${{steps.cmake_build_flags.outputs.cmake_build_flags}}
+          --target my_program
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.abi == 'gnu' }}
       - name: Build host program in cross-compile setup
-        run: |
-          cmake \
-            --build build ${{steps.cmake_build_flags.outputs.cmake_build_flags}} \
-            --target cargo-build_rust-host-program
+        run: >
+          cmake
+          --build build ${{steps.cmake_build_flags.outputs.cmake_build_flags}}
+          --target cargo-build_rust-host-program
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.abi == 'gnu' && matrix.cmake == '3.19.0' }}
       - name: Run host program in cross-compile setup
         run: |
@@ -261,12 +265,16 @@ jobs:
     steps:
       - name: Check tests external
         id: check_external
+        shell: bash
         run: |
           if [ "${{ matrix.method }}" == "subdirectory" ]; then
             echo "::set-output name=find::OFF"
           elif [ "${{ matrix.method }}" == "install" ]; then
             echo "::set-output name=find::ON"
           fi
+      - name: Setup MSVC Development Environment
+        uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
       - uses: actions/checkout@v2
       - name: Install CMake
         uses: AndrewGaspar/install-cmake@master
@@ -283,24 +291,26 @@ jobs:
       - name: Rust Version
         run: rustc --version
       - name: Install Corrosion
-        run: |
-          cmake \
-            -H. \
-            -Bbuild-corrosion \
-            -DCORROSION_VERBOSE_OUTPUT=ON \
-            -DCORROSION_BUILD_TESTS=OFF \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=install-corrosion
+        run: >
+          cmake
+          -H.
+          -Bbuild-corrosion
+          -DCORROSION_VERBOSE_OUTPUT=ON
+          -DCORROSION_BUILD_TESTS=OFF
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_INSTALL_PREFIX=install-corrosion
+
           cmake --build build-corrosion --config Release
+
           cmake --install build-corrosion --config Release
         if: ${{ matrix.method == 'install' }}
       - name: Configure Tests
-        run: |
-          cmake \
-            -Htest \
-            -Bbuild-tests \
-            -DCORROSION_TESTS_FIND_CORROSION=${{steps.check_external.outputs.find}} \
-            -DCMAKE_PREFIX_PATH="$PWD/install-corrosion"
+        run: >
+          cmake
+          -Htest
+          -Bbuild-tests
+          -DCORROSION_TESTS_FIND_CORROSION=${{steps.check_external.outputs.find}}
+          -DCMAKE_PREFIX_PATH="$PWD/install-corrosion"
       - name: Build Tests
         run: cmake --build build-tests
 
