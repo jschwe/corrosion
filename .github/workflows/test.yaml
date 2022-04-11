@@ -278,7 +278,7 @@ jobs:
       - name: Install CMake
         uses: AndrewGaspar/install-cmake@master
         with:
-          cmake: 3.18.0
+          cmake: 3.19.0
           ninja: 1.10.0
       - name: Install Rust
         uses: actions-rs/toolchain@v1
