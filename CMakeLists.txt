@@ -30,24 +30,24 @@ set(
   "Use prebuilt, non-bootstrapped corrosion-generator")
 mark_as_advanced(CORROSION_GENERATOR_EXECUTABLE)
 
-if (CORROSION_GENERATOR_EXECUTABLE)
-    add_executable(Corrosion::Generator IMPORTED GLOBAL)
-    set_property(
-        TARGET Corrosion::Generator
-        PROPERTY IMPORTED_LOCATION ${CORROSION_GENERATOR_EXECUTABLE})
+#if (CORROSION_GENERATOR_EXECUTABLE)
+#    add_executable(Corrosion::Generator IMPORTED GLOBAL)
+#    set_property(
+#        TARGET Corrosion::Generator
+#        PROPERTY IMPORTED_LOCATION ${CORROSION_GENERATOR_EXECUTABLE})
+#    set(CORROSION_INSTALL_EXECUTABLE_DEFAULT OFF)
+## If corrosion is used as a subdirectory, the CMake version is recent enough and the option is not
+## explicitly disabled, then we do not need to build the Rust based parser and use the CMake based
+## parser instead.
+#elseif((NOT _CORROSION_TOP_LEVEL)
+#        AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.19.0
+#        AND ((NOT DEFINED CORROSION_EXPERIMENTAL_PARSER)
+#            OR CORROSION_EXPERIMENTAL_PARSER)
+#        )
     set(CORROSION_INSTALL_EXECUTABLE_DEFAULT OFF)
-# If corrosion is used as a subdirectory, the CMake version is recent enough and the option is not
-# explicitly disabled, then we do not need to build the Rust based parser and use the CMake based
-# parser instead.
-elseif((NOT _CORROSION_TOP_LEVEL)
-        AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.19.0
-        AND ((NOT DEFINED CORROSION_EXPERIMENTAL_PARSER)
-            OR CORROSION_EXPERIMENTAL_PARSER)
-        )
-    set(CORROSION_INSTALL_EXECUTABLE_DEFAULT OFF)
-else()
-    set(CORROSION_INSTALL_EXECUTABLE_DEFAULT ON)
-endif()
+#else()
+#    set(CORROSION_INSTALL_EXECUTABLE_DEFAULT ON)
+#endif()
 
 option(
     CORROSION_INSTALL_EXECUTABLE
