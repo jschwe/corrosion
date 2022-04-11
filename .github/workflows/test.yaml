@@ -19,26 +19,20 @@ jobs:
       matrix:
         os:
           - windows-2019 # windows-latest is currently not having a supported MSVC compiler
-          - ubuntu-latest
           - macos-10.15
         arch:
           - x86_64
-          - i686
           - aarch64
-          - powerpc64le
         abi:
           - gnu
           - darwin
           - msvc
         cmake:
-          - 3.12.4
-          - 3.18.0
           - 3.19.0
+          - 3.21.0
         rust:
           - 1.44.1 # Earliest targeted version
-          - 1.45.0 # Earliest version compatible with Windows GNU
           - stable
-          - nightly
         generator:
           - default # This is just whatever the platform default is
           - ninja
