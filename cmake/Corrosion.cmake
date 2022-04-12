@@ -291,13 +291,11 @@ function(_add_cargo_build)
         corrosion_add_target_rustflags("${target_name}" "-Cdefault-linker-libraries=yes")
     endif()
 
-    if(CMAKE_CROSSCOMPILING)
-        set(rustflags_genex_test "$<$<BOOL:${rustflags_target_property}>:RUSTFLAGS=\"${rustflags_target_property}\">")
-    else()
+    set(rustflags_genex "$<$<BOOL:${rustflags_target_property}>:RUSTFLAGS=\"${rustflags_target_property}\">")
+    if(NOT CMAKE_CROSSCOMPILING)
         # We set the target property so this may lead to cargo ignoring the rustflags for build scripts even though
         # we arent actually crosscompiling.
-        set(rustflags_genex_test "$<$<BOOL:${rustflags_target_property}>:RUSTFLAGS=\"${rustflags_target_property}\">")
-        set(rustflags_genex_test "$<$<BOOL:${rustflags_target_property}>:RUSTFLAGS_HOST=\"${rustflags_target_property}\">")
+        set(rustflags_host_genex "$<$<BOOL:${rustflags_target_property}>:RUSTFLAGS_HOST=\"${rustflags_target_property}\">")
     endif()
 
     if(CORROSION_LINKER_PREFERENCE)
@@ -337,7 +335,8 @@ function(_add_cargo_build)
     COMMAND
         ${CMAKE_COMMAND} -E env
             ${build_env_variable_genex}
-            ${rustflags_genex_test}
+            ${rustflags_genex}
+            ${rustflags_host_genex}
             ${cargo_target_linker}
             ${corrosion_cc_rs_flags}
             CORROSION_BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}
