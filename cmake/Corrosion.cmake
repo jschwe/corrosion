@@ -291,12 +291,7 @@ function(_add_cargo_build)
         corrosion_add_target_rustflags("${target_name}" "-Cdefault-linker-libraries=yes")
     endif()
 
-    set(rustflags_genex "$<$<BOOL:${rustflags_target_property}>:RUSTFLAGS=\"${rustflags_target_property}\">")
-    if(NOT CMAKE_CROSSCOMPILING)
-        # We set the target property so this may lead to cargo ignoring the rustflags for build scripts even though
-        # we arent actually crosscompiling.
-        set(rustflags_host_genex "$<$<BOOL:${rustflags_target_property}>:RUSTFLAGS_HOST=\"${rustflags_target_property}\">")
-    endif()
+    set(rustflags_genex "$<$<BOOL:${rustflags_target_property}>:CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_RUSTFLAGS=\"${rustflags_target_property}\">")
 
     if(CORROSION_LINKER_PREFERENCE)
         if(CMAKE_CROSSCOMPILING)
