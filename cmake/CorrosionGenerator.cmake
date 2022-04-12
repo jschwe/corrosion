@@ -333,7 +333,7 @@ function(_generator_add_target manifest ix cargo_version profile)
         message(FATAL_ERROR "unknown target type")
     endif()
     if(is_macos)
-        corrosion_add_target_rustflags(TARGET ${target_name} "-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib")
+        corrosion_add_target_rustflags(${target_name} "-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib")
     endif()
 
     _add_cargo_build(
