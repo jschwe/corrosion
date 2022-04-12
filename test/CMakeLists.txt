@@ -29,7 +29,7 @@ if(Rust_VERSION VERSION_GREATER_EQUAL 1.57.0)
 endif()
 
 # Config tests don't work if this is the top level directory.
-if (NOT _TOP_LEVEL)
+if (NOT _TOP_LEVEL AND NOT CORROSION_EXPERIMENTAL_PARSER)
     add_subdirectory(config)
 endif()
 
