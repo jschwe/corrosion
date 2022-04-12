@@ -310,4 +310,53 @@ jobs:
             -DCMAKE_PREFIX_PATH="$PWD/install-corrosion"
       - name: Build Tests
         run: cmake --build build-tests --verbose
-
+  cargo_build_envvar:
+    name: cargo build envvar
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        method:
+          - subdirectory
+          - install
+    steps:
+      - name: Check tests external
+        id: check_external
+        run: |
+          if [ "${{ matrix.method }}" == "subdirectory" ]; then
+            echo "::set-output name=find::OFF"
+          elif [ "${{ matrix.method }}" == "install" ]; then
+            echo "::set-output name=find::ON"
+          fi
+      - uses: actions/checkout@v2
+      - name: Install CMake
+        uses: AndrewGaspar/install-cmake@master
+        with:
+          cmake: 3.19.0
+          ninja: 1.10.0
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.59.0
+          default: true
+      - name: CMake Version
+        run: cmake --version
+      - name: Rust Version
+        run: rustc --version
+      - name: cargo build
+        run: >
+          cd test/envvar
+          
+          cargo build 
+          --target=x86_64-apple-darwin 
+          --package rust-lib-requiring-envvar 
+          --manifest-path /Users/runner/work/corrosion/corrosion/test/envvar/Cargo.toml
+      - name: Configure Tests
+        run: |
+          cmake \
+            -Stest \
+            -Bbuild-tests \
+            -DCORROSION_TESTS_FIND_CORROSION=${{steps.check_external.outputs.find}} \
+            -DCMAKE_PREFIX_PATH="$PWD/install-corrosion"
+      - name: Build Tests
+        run: cmake --build build-tests --verbose
