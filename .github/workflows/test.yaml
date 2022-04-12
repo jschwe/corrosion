@@ -19,7 +19,7 @@ jobs:
       matrix:
         os:
           - windows-2019 # windows-latest is currently not having a supported MSVC compiler
-          - macos-10.15
+          - macos-latest
         arch:
           - x86_64
           - aarch64
@@ -261,7 +261,7 @@ jobs:
         os:
           - windows-2019
           - ubuntu-latest
-          - macos-10.15
+          - macos-latest
         method:
           - subdirectory
           - install
