@@ -300,8 +300,16 @@ function(_add_cargo_build)
             # override this by manually adding the appropriate rustflags to select the compiler for the target!
             set(cargo_target_linker "$<${if_not_host_build_condition}:CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_LINKER=${CORROSION_LINKER_PREFERENCE}>")
         else()
-            if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND ${target_name} STREQUAL rust-lib-requiring-envvar)
-                set(cargo_target_linker "CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_LINKER=/usr/bin/ld")
+            if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+                # For macOS >= 11 We can't set the linker to something other then the default rust linker, since Rust
+                # will add `-lSystem`, which the regular linkers seem not have in their standard library search paths.
+                # We can manually add the path via `-L` and RUSTFLAGs for regular crates, but this will not work for
+                # buildscripts, since RUSTFLAGS don't get passed to them (if you specify a target, which we do).
+                # Currently corrosion assumes at multiple places that we have --target set (this also affects the
+                # output path of build artifacts), so changes there should be carefully reviewed.
+                # We could add a target property to toggle the linker setting on, if the user is sure that there is
+                # no build script.
+                set(cargo_target_linker "")
             else()
                 set(cargo_target_linker "CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_LINKER=${CORROSION_LINKER_PREFERENCE}")
             endif()
