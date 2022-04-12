@@ -226,6 +226,17 @@ function(_add_cargo_build)
     set(cargo_target_option "$<IF:${if_not_host_build_condition},--target=${_CORROSION_RUST_CARGO_TARGET},--target=${_CORROSION_RUST_CARGO_HOST_TARGET}>")
     set(target_artifact_dir "$<IF:${if_not_host_build_condition},${_CORROSION_RUST_CARGO_TARGET},${_CORROSION_RUST_CARGO_HOST_TARGET}>")
 
+    # Rust will link to the System library on MacOS causing the linker to fail if the -L flag is not passed.
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        message(STATUS "Adding link dir normally - target: ${target_name}")
+        corrosion_add_target_rustflags(${target_name} "-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib")
+    elseif(CMAKE_CROSSCOMPILING AND CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+        message(STATUS "Adding link dir for Hostbuild - target: ${target_name}")
+        corrosion_add_target_rustflags(${target_name} "$<IF:${if_not_host_build_condition},,"-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib">")
+    else()
+        message(STATUS "Not adding any link dir for target ${target_name}")
+    endif()
+
 
     if(cargo_profile_name)
         set(cargo_profile "--profile=${cargo_profile_name}")
