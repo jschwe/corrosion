@@ -268,13 +268,13 @@ function(_generator_add_target manifest ix cargo_version profile)
         if(has_staticlib)
             add_library(${target_name}-static STATIC IMPORTED GLOBAL)
             add_dependencies(${target_name}-static cargo-build_${target_name})
-
             if(libs)
                 set_property(
                     TARGET ${target_name}-static
                     PROPERTY INTERFACE_LINK_LIBRARIES ${libs}
                 )
                 if(is_macos)
+                    corrosion_add_target_rustflags(${target_name}-static "-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib")
                     set_property(TARGET ${target_name}-static
                             PROPERTY INTERFACE_LINK_DIRECTORIES "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
                     )
