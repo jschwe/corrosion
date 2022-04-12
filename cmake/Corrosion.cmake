@@ -223,8 +223,8 @@ function(_add_cargo_build)
     set(if_not_host_build_condition "$<NOT:$<BOOL:$<TARGET_PROPERTY:${target_name},${_CORR_PROP_HOST_BUILD}>>>")
 
     set(corrosion_link_args "$<${if_not_host_build_condition}:${corrosion_link_args}>")
-    set(cargo_target_option "$<IF:${if_not_host_build_condition},--target=${_CORROSION_RUST_CARGO_TARGET},>")
-    set(target_artifact_dir "$<IF:${if_not_host_build_condition},${_CORROSION_RUST_CARGO_TARGET},${_CORROSION_RUST_CARGO_HOST_TARGET}>")
+    set(cargo_target_option "$<${if_not_host_build_condition}:--target=${_CORROSION_RUST_CARGO_TARGET}>")
+    set(target_artifact_dir "$<${if_not_host_build_condition}:${_CORROSION_RUST_CARGO_TARGET}/>")
 
     # Rust will link to the System library on MacOS causing the linker to fail if the -L flag is not passed.
     if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -246,7 +246,7 @@ function(_add_cargo_build)
         set(cargo_profile $<$<NOT:$<OR:$<CONFIG:Debug>,$<CONFIG:>>>:--release>)
     endif()
 
-    set(cargo_build_dir "${CMAKE_BINARY_DIR}/${build_dir}/cargo/build/${target_artifact_dir}/${build_type_dir}")
+    set(cargo_build_dir "${CMAKE_BINARY_DIR}/${build_dir}/cargo/build/${target_artifact_dir}${build_type_dir}")
     set(build_byproducts)
     set(byproducts)
     foreach(byproduct_file ${ACB_BYPRODUCTS})
