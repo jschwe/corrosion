@@ -229,11 +229,10 @@ function(_add_cargo_build)
     # Rust will link to the System library on MacOS causing the linker to fail if the -L flag is not passed.
     if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         message(STATUS "Adding link dir normally - target: ${target_name}")
-        corrosion_add_target_rustflags(${target_name} "-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib")
-        corrosion_add_target_rustflags(${target_name} "-Clink-arg=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib")
+        set(cargo_library_path "LIBRARY_PATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib")
     elseif(CMAKE_CROSSCOMPILING AND CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
         message(STATUS "Adding link dir for Hostbuild - target: ${target_name}")
-        corrosion_add_target_rustflags(${target_name} "$<IF:${if_not_host_build_condition},,-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib>")
+        set(cargo_library_path "$<IF:${if_not_host_build_condition},,LIBRARY_PATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib>")
     else()
         message(STATUS "Not adding any link dir for target ${target_name}")
     endif()
@@ -300,19 +299,7 @@ function(_add_cargo_build)
             # override this by manually adding the appropriate rustflags to select the compiler for the target!
             set(cargo_target_linker "$<${if_not_host_build_condition}:CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_LINKER=${CORROSION_LINKER_PREFERENCE}>")
         else()
-            if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-                # For macOS >= 11 We can't set the linker to something other then the default rust linker, since Rust
-                # will add `-lSystem`, which the regular linkers seem not have in their standard library search paths.
-                # We can manually add the path via `-L` and RUSTFLAGs for regular crates, but this will not work for
-                # buildscripts, since RUSTFLAGS don't get passed to them (if you specify a target, which we do).
-                # Currently corrosion assumes at multiple places that we have --target set (this also affects the
-                # output path of build artifacts), so changes there should be carefully reviewed.
-                # We could add a target property to toggle the linker setting on, if the user is sure that there is
-                # no build script.
-                set(cargo_target_linker "")
-            else()
-                set(cargo_target_linker "CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_LINKER=${CORROSION_LINKER_PREFERENCE}")
-            endif()
+            set(cargo_target_linker "CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_LINKER=${CORROSION_LINKER_PREFERENCE}")
         endif()
         # Will be only set for cross-compilers like clang, c.f. `CMAKE_<LANG>_COMPILER_TARGET`.
         if(CORROSION_LINKER_PREFERENCE_TARGET)
@@ -346,6 +333,7 @@ function(_add_cargo_build)
             ${rustflags_host_genex}
             ${cargo_target_linker}
             ${corrosion_cc_rs_flags}
+            ${cargo_library_path}
             CORROSION_BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}
             CARGO_BUILD_RUSTC="${_CORROSION_RUSTC}"
         "${_CORROSION_CARGO}"
