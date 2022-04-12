@@ -357,7 +357,6 @@ jobs:
           CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS: "-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib -Clink-arg=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib -Cdefault-linker-libraries=yes"
           CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER: "/Applications/Xcode_13.2.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++"
           CXX_x86_64-apple-darwin: "/Applications/Xcode_13.2.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++"
-          HOST_CXX: "/Applications/Xcode_13.2.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++"
 
       - name: Configure Tests
         run: |
