@@ -292,7 +292,7 @@ jobs:
       - name: Install Corrosion
         run: |
           cmake \
-            -H. \
+            -S. \
             -Bbuild-corrosion \
             -DCORROSION_VERBOSE_OUTPUT=ON \
             -DCORROSION_BUILD_TESTS=OFF \
@@ -304,10 +304,10 @@ jobs:
       - name: Configure Tests
         run: |
           cmake \
-            -Htest \
+            -Stest \
             -Bbuild-tests \
             -DCORROSION_TESTS_FIND_CORROSION=${{steps.check_external.outputs.find}} \
             -DCMAKE_PREFIX_PATH="$PWD/install-corrosion"
       - name: Build Tests
-        run: cmake --build build-tests
+        run: cmake --build build-tests --verbose
 
