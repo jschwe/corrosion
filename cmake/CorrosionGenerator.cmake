@@ -274,7 +274,6 @@ function(_generator_add_target manifest ix cargo_version profile)
                     PROPERTY INTERFACE_LINK_LIBRARIES ${libs}
                 )
                 if(is_macos)
-                    corrosion_add_target_rustflags(${target_name}-static "-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib")
                     set_property(TARGET ${target_name}-static
                             PROPERTY INTERFACE_LINK_DIRECTORIES "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
                     )
@@ -302,7 +301,6 @@ function(_generator_add_target manifest ix cargo_version profile)
             add_library(${target_name}-shared SHARED IMPORTED GLOBAL)
             add_dependencies(${target_name}-shared cargo-build_${target_name})
             if(is_macos)
-                corrosion_add_target_rustflags(${target_name}-shared "-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib")
                 set_property(TARGET ${target_name}-shared
                         PROPERTY INTERFACE_LINK_DIRECTORIES "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
                         )
