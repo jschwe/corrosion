@@ -300,7 +300,11 @@ function(_add_cargo_build)
             # override this by manually adding the appropriate rustflags to select the compiler for the target!
             set(cargo_target_linker "$<${if_not_host_build_condition}:CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_LINKER=${CORROSION_LINKER_PREFERENCE}>")
         else()
-            set(cargo_target_linker "CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_LINKER=${CORROSION_LINKER_PREFERENCE}")
+            if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND ${target_name} STREQUAL rust-lib-requiring-envvar)
+                set(cargo_target_linker "CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_LINKER=/usr/bin/ld")
+            else()
+                set(cargo_target_linker "CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_LINKER=${CORROSION_LINKER_PREFERENCE}")
+            endif()
         endif()
         # Will be only set for cross-compilers like clang, c.f. `CMAKE_<LANG>_COMPILER_TARGET`.
         if(CORROSION_LINKER_PREFERENCE_TARGET)
