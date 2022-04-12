@@ -76,11 +76,11 @@ jobs:
             generator: ninja
           - os: windows-2019
             arch: powerpc64le
-          - os: macos-10.15
+          - os: macos-latest
             arch: i686
-          - os: macos-10.15
+          - os: macos-latest
             arch: aarch64
-          - os: macos-10.15
+          - os: macos-latest
             arch: powerpc64le
 
           # ABI
@@ -90,14 +90,14 @@ jobs:
             abi: darwin
           - os: windows-2019
             abi: darwin
-          - os: macos-10.15
+          - os: macos-latest
             abi: msvc
-          - os: macos-10.15
+          - os: macos-latest
             abi: gnu
 
           # Rust
           # Build each set only with the earliest compatible versioned Rust
-          - os: macos-10.15
+          - os: macos-latest
             rust: 1.45.0
           - os: ubuntu-latest
             rust: 1.45.0
