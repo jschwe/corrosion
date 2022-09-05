@@ -232,6 +232,9 @@ jobs:
         method:
           - subdirectory
           - install
+        cmake:
+          - "3.18.0"
+          - "3.20.4"
     steps:
       - name: Check tests external
         id: check_external
@@ -245,7 +248,7 @@ jobs:
       - name: Install CMake
         uses: corrosion-rs/install-cmake@v1.1
         with:
-          cmake: 3.18.0
+          cmake: ${{ matrix.cmake }}
           ninja: 1.10.0
       - name: Install Rust
         uses: actions-rs/toolchain@v1
