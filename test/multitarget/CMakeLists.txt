@@ -5,3 +5,5 @@ target_compile_features(cpp-lib4 PRIVATE cxx_std_14)
 corrosion_link_libraries(bin1 cpp-lib4)
 corrosion_link_libraries(bin2 cpp-lib4)
 corrosion_link_libraries(bin3 cpp-lib4)
+
+set_target_properties(bin1 PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
