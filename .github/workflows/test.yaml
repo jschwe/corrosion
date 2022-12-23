@@ -206,7 +206,7 @@ jobs:
           configure_params: "-DCORROSION_TESTS_KEEP_BUILDDIRS=ON"
       - name: Run Tests
         working-directory: build
-        run: ctest --output-on-failure --build-config Debug -j 3
+        run: ctest --verbose --output-on-failure --build-config Debug
 
   test_cxxbridge:
     name: Test cxxbridge integration
