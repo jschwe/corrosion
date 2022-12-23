@@ -7,7 +7,6 @@ on:
     branches:
       - '**'
 jobs:
-
   test_legacy_linux:
     name: Test Corrosion (CMake 3.15)
     uses: ./.github/workflows/test_legacy.yaml
@@ -26,7 +25,6 @@ jobs:
     with:
       os: windows-2019
       rust: 1.46.0
-
 
   test:
     name: Test Corrosion
@@ -138,8 +136,8 @@ jobs:
         working-directory: build
         run: ctest --output-on-failure --build-config Debug -j 3
 
-  test_msvc:
-    name: Test MSVC Generator
+  a_test_msvc:
+    name: A Test MSVC Generator
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
