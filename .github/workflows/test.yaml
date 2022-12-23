@@ -13,13 +13,13 @@ jobs:
     with :
       os: ubuntu-20.04
       rust: 1.46.0
-  test_legacy_mac:
+  b_test_legacy_mac:
     name: Test Corrosion (CMake 3.15)
     uses: ./.github/workflows/test_legacy.yaml
     with:
       os: macos-12
       rust: 1.54.0
-  test_legacy_windows:
+  b_test_legacy_windows:
     name: Test Corrosion (CMake 3.15)
     uses: ./.github/workflows/test_legacy.yaml
     with:
@@ -137,7 +137,7 @@ jobs:
         run: ctest --output-on-failure --build-config Debug -j 3
 
   a_test_msvc:
-    name: A Test MSVC Generator
+    name: Test MSVC Generator
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
