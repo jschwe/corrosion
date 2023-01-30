@@ -926,17 +926,18 @@ function(_add_cargo_build out_cargo_build_out_dir)
     set(local_rustflags_genex "$<$<BOOL:${local_rustflags_target_property}>:${local_rustflags_target_property}>")
 
 
-    # Used to set a linker for a specific target-triple.
-    set(cargo_target_linker_var "CARGO_TARGET_${_CORROSION_RUST_CARGO_TARGET_UPPER}_LINKER")
+    # Used to set a linker for rustc native linking, i.e. shared libs and bin targets.
     if(NOT ACB_NO_LINKER_OVERRIDE)
+        set(explicit_linker "$<BOOL:${explicit_linker_property}>")
         if(CORROSION_LINKER_PREFERENCE)
-            set(cargo_target_linker_arg "$<IF:$<BOOL:${explicit_linker_property}>,${explicit_linker_property},${CORROSION_LINKER_PREFERENCE}>")
-            set(cargo_target_linker "${cargo_target_linker_var}=${cargo_target_linker_arg}")
+            set(cargo_target_linker_arg "$<IF:${explicit_linker},${explicit_linker_property},${CORROSION_LINKER_PREFERENCE}>")
+            set(cargo_target_linker "-Clinker=${cargo_target_linker_arg}")
             if(CMAKE_CROSSCOMPILING)
                 # CMake does not offer a host compiler we could select when configured for cross-compiling. This
-                # effectively means that by default cc will be selected for builds targeting host. The user can still
-                # override this by manually adding the appropriate rustflags to select the compiler for the target!
-                set(cargo_target_linker "$<${if_not_host_build_condition}:${cargo_target_linker}>")
+                # effectively means that rustc will fallback to the default linker of the target for host builds.
+                # The user can still override this by manually setting a linker.
+                set(default_cc_linker "$<${if_not_host_build_condition}:${cargo_target_linker}>")
+                set(cargo_target_linker "$<IF:${explicit_linker},${cargo_target_linker},${default_cc_linker}>")
             endif()
             # Will be only set for cross-compilers like clang, c.f. `CMAKE_<LANG>_COMPILER_TARGET`.
             if(CORROSION_LINKER_PREFERENCE_TARGET)
@@ -944,17 +945,15 @@ function(_add_cargo_build out_cargo_build_out_dir)
                 # Skip adding the linker argument, if the linker is explicitly set, since the
                 # explicit_linker_property will not be set when this function runs.
                 # Passing this rustflag is necessary for clang.
-                corrosion_add_target_local_rustflags("${target_name}" "$<$<NOT:$<BOOL:${explicit_linker_property}>>:${rustflag_linker_arg}>")
+                corrosion_add_target_local_rustflags("${target_name}" "$<$<NOT:${explicit_linker}>:${rustflag_linker_arg}>")
             endif()
         else()
             message(DEBUG "No linker preference for target ${target_name} could be detected.")
             # Note: Adding quotes here introduces wierd errors when using MSVC. Since there are no spaces here at
             # configure time, we can omit the quotes without problems
-            set(cargo_target_linker $<$<BOOL:${explicit_linker_property}>:${cargo_target_linker_var}=${explicit_linker_property}>)
+            set(cargo_target_linker $<${explicit_linker}:-Clinker=${explicit_linker_property}>)
         endif()
-    else()
-        # Disable the linker override by setting it to an empty string.
-        set(cargo_target_linker "")
+        corrosion_add_target_local_rustflags("${target_name}" "${cargo_target_linker}")
     endif()
 
     message(DEBUG "TARGET ${target_name} produces byproducts ${byproducts}")
@@ -966,7 +965,6 @@ function(_add_cargo_build out_cargo_build_out_dir)
             ${CMAKE_COMMAND} -E env
                 "${build_env_variable_genex}"
                 "${global_rustflags_genex}"
-                "${cargo_target_linker}"
                 "${corrosion_cc_rs_flags}"
                 "${cargo_library_path}"
                 "CORROSION_BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}"
@@ -991,6 +989,7 @@ function(_add_cargo_build out_cargo_build_out_dir)
                 # Any arguments to cargo must be placed before this line
                 ${local_rustflags_delimiter}
                 ${local_rustflags_genex}
+
 
         # Note: Adding `build_byproducts` (the byproducts in the cargo target directory) here
         # causes CMake to fail during the Generate stage, because the target `target_name` was not
