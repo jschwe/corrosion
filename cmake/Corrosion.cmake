@@ -672,13 +672,18 @@ if(CORROSION_NATIVE_TOOLING)
     if (NOT TARGET Corrosion::Generator )
         set(generator_destination "${CMAKE_CURRENT_BINARY_DIR}/corrosion/legacy_generator")
         message(STATUS "Building CMake Generator for Corrosion - This may take a while")
+        set(generator_build_quiet "")
+        if(NOT _CORROSION_VERBOSE_OUTPUT_FLAG)
+            set(generator_build_quiet "--quiet")
+        endif()
         # Using cargo install has the advantage of caching the build in the user .cargo directory,
         # so likely the rebuild will be very cheap even after deleting the build directory.
         execute_process(
                 COMMAND "${CARGO_EXECUTABLE}" install
-                    --path "${CMAKE_CURRENT_LIST_DIR}/../generator"
+                    --path "."
                     --root "${generator_destination}"
-                    --quiet
+                    ${generator_build_quiet}
+                WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../generator"
                 RESULT_VARIABLE generator_build_failed
         )
         if(generator_build_failed)
