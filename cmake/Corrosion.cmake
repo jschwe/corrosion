@@ -497,24 +497,41 @@ function(_corrosion_add_library_target)
     endif()
 endfunction()
 
+function(_corrosion_get_bin_extension target_os out_extension)
+    if("${target_os}" STREQUAL "windows")
+        set(extension ".exe")
+    else()
+        set(extension "")
+    endif()
+    set("${out_extension}" "${extension}" PARENT_SCOPE)
+endfunction()
+
 function(_corrosion_add_bin_target workspace_manifest_path bin_name out_bin_byproduct out_pdb_byproduct)
     if(NOT bin_name)
         message(FATAL_ERROR "No bin_name in _corrosion_add_bin_target for target ${target_name}")
     endif()
 
     string(REPLACE "-" "_" bin_name_underscore "${bin_name}")
+    set(is_hostbuild "$<BOOL:$<TARGET_PROPERTY:${target_name},${_CORR_PROP_HOST_BUILD}>>")
+    set(not_hostbuild "$<NOT:${is_hostbuild}>")
+
 
     set(pdb_name "${bin_name_underscore}.pdb")
-
+    set(target_pdb_genex "")
+    set(host_pdb_genex "")
     if(Rust_CARGO_TARGET_ENV STREQUAL "msvc")
-        set(${out_pdb_byproduct} "${pdb_name}" PARENT_SCOPE)
+        set(target_pdb_genex "$<${not_hostbuild}:${pdb_name}>" PARENT_SCOPE)
     endif()
+    if(Rust_CARGO_HOST_ENV STREQUAL "msvc")
+        set(host_pdb_genex "$<${is_hostbuild}:${pdb_name}>" PARENT_SCOPE)
+    endif()
+    set(${out_pdb_byproduct} "${host_pdb_genex}${target_pdb_genex}" PARENT_SCOPE)
 
-    if(Rust_CARGO_TARGET_OS STREQUAL "windows")
-        set(bin_filename "${bin_name}.exe")
-    else()
-        set(bin_filename "${bin_name}")
-    endif()
+
+    _corrosion_get_bin_extension("${Rust_CARGO_TARGET_OS}" target_extension)
+    _corrosion_get_bin_extension("${Rust_CARGO_HOST_OS}" host_extension)
+    set(bin_filename "${bin_name}$<IF:${is_hostbuild},${host_extension},${target_extension}>")
+
     set(${out_bin_byproduct} "${bin_filename}" PARENT_SCOPE)
 
 
