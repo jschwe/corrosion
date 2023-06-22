@@ -857,13 +857,28 @@ function(_add_cargo_build out_cargo_build_out_dir)
         # Skip adding the linker argument, if the linker is explicitly set, since the
         # explicit_linker_property will not be set when this function runs.
         # Passing this rustflag is necessary for clang.
+        message(STATUS "Adding flags for target ${target_name}: Genex: ${explicit_linker_defined} Content:${rustflag_linker_arg}" )
         corrosion_add_target_local_rustflags("${target_name}" "$<$<NOT:${explicit_linker_defined}>:${rustflag_linker_arg}>")
+    else()
+        message(STATUS "Not adding CC args")
     endif()
 
     message(DEBUG "TARGET ${target_name} produces byproducts ${byproducts}")
 
     add_custom_target(
         _cargo-build_${target_name}
+            COMMAND
+            ${CMAKE_COMMAND} -E echo
+            "Environment variables..."
+            "${build_env_variable_genex}"
+            "${global_rustflags_genex}"
+            "${cargo_target_linker}"
+            "${corrosion_cc_rs_flags}"
+            "${cargo_library_path}"
+            COMMAND
+            ${CMAKE_COMMAND} -E echo
+            "local rustflags: ${local_rustflags_genex}"
+
         # Build crate
         COMMAND
             ${CMAKE_COMMAND} -E env

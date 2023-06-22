@@ -5,6 +5,9 @@ if(NOT CORROSION_TESTS)
     return()
 endif()
 
+message(STATUS "Main project tests CMAKE_C_COMPILER_TARGET: ${CMAKE_C_COMPILER_TARGET}")
+
+
 option(CORROSION_TESTS_CXXBRIDGE
         "Build cxxbridge tests which requires cxxbridge executable being available"
         OFF)
@@ -87,6 +90,7 @@ function(corrosion_tests_add_test test_name bin_names)
         set(test_dir "${test_name}")
     endif()
 
+    message(STATUS "corrosion_tests_add_test CMAKE_C_COMPILER_TARGET: ${CMAKE_C_COMPILER_TARGET}")
 
     if(CMAKE_C_COMPILER)
         set(TEST_C_COMPILER "C_COMPILER" "${CMAKE_C_COMPILER}")
@@ -100,6 +104,7 @@ function(corrosion_tests_add_test test_name bin_names)
     if(CMAKE_CXX_COMPILER_TARGET)
         set(TEST_CXX_COMPILER_TARGET "CXX_COMPILER_TARGET" "${CMAKE_CXX_COMPILER_TARGET}")
     endif()
+    message(STATUS "before add test: TEST_C_COMPILER_TARGET: ${TEST_C_COMPILER_TARGET}")
     if(CMAKE_GENERATOR_PLATFORM)
         set(TEST_GENERATOR_PLATFORM "GENERATOR_PLATFORM" "${CMAKE_GENERATOR_PLATFORM}")
     endif()
