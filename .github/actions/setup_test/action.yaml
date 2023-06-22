@@ -177,6 +177,8 @@ runs:
         "${{steps.arch_flags.outputs.cmake}}"
         "${{steps.pick_compiler.outputs.c_compiler}}"
         "${{steps.pick_compiler.outputs.cxx_compiler}}"
+        ${{ steps.pick_compiler.outputs.c_compiler_target }}
+        ${{ steps.pick_compiler.outputs.cxx_compiler_target }}
         "${{steps.determine_cross_compile.outputs.system_name}}"
         "${{steps.pick_generator.outputs.generator}}"
         ${{steps.install_prefix.outputs.install_path}}

@@ -94,6 +94,12 @@ function(corrosion_tests_add_test test_name bin_names)
     if(CMAKE_CXX_COMPILER)
         set(TEST_CXX_COMPILER "CXX_COMPILER" "${CMAKE_CXX_COMPILER}")
     endif()
+    if(CMAKE_C_COMPILER_TARGET)
+        set(TEST_C_COMPILER_TARGET "C_COMPILER_TARGET" "${CMAKE_C_COMPILER_TARGET}")
+    endif()
+    if(CMAKE_CXX_COMPILER_TARGET)
+        set(TEST_CXX_COMPILER_TARGET "CXX_COMPILER_TARGET" "${CMAKE_CXX_COMPILER_TARGET}")
+    endif()
     if(CMAKE_GENERATOR_PLATFORM)
         set(TEST_GENERATOR_PLATFORM "GENERATOR_PLATFORM" "${CMAKE_GENERATOR_PLATFORM}")
     endif()
@@ -117,6 +123,8 @@ function(corrosion_tests_add_test test_name bin_names)
             "${TEST_SYSTEM_NAME}"
             "${TEST_C_COMPILER}"
             "${TEST_CXX_COMPILER}"
+            "${TEST_C_COMPILER_TARGET}"
+            "${TEST_CXX_COMPILER_TARGET}"
             "${TEST_GENERATOR_PLATFORM}"
             "${TEST_GENERATOR_BIN}"
             ${pass_through_arguments}

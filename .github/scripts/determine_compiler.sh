@@ -41,6 +41,12 @@ echo "Compiler Family: '${compiler_kind}'"
 if [[ "${compiler_kind}" == "clang" ]]; then
   c_compiler="clang"
   cxx_compiler="clang++"
+  if [[ -n "${target_system_name}" ]]; then
+    # In CI we only cross-compile to linux for now
+    compiler_target="${target_arch}-linux-gnu"
+    echo "c_compiler_target=-DCMAKE_C_COMPILER_TARGET=${compiler_target}" >> "$GITHUB_OUTPUT"
+    echo "cxx_compiler_target=-DCMAKE_CXX_COMPILER_TARGET=${compiler_target}" >> "$GITHUB_OUTPUT"
+  fi
 elif [[ "${compiler_kind}" == "msvc" ]]; then
   c_compiler="cl"
   cxx_compiler="cl"
@@ -55,5 +61,5 @@ elif [[ "${compiler_kind}" == "gcc" ]]; then
 fi
 echo "Chose C compiler: '${c_compiler}'"
 echo "Chose C++ compiler: '${cxx_compiler}'"
-echo "c_compiler=-DCMAKE_C_COMPILER=${c_compiler}" >> $GITHUB_OUTPUT
-echo "cxx_compiler=-DCMAKE_CXX_COMPILER=${cxx_compiler}" >> $GITHUB_OUTPUT
+echo "c_compiler=-DCMAKE_C_COMPILER=${c_compiler}" >> "$GITHUB_OUTPUT"
+echo "cxx_compiler=-DCMAKE_CXX_COMPILER=${cxx_compiler}" >> "$GITHUB_OUTPUT"
