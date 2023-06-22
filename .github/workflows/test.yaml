@@ -103,6 +103,13 @@ jobs:
             cmake: 3.20.0
             rust: 1.54
             generator: ninja-multiconfig
+          # Test cross-compiling with clang
+          - os: ubuntu-latest
+            arch: aarch64
+            abi: gnu
+            cmake: 3.19.0
+            rust: 1.70.0
+            compiler: clang
 
         exclude:
 
