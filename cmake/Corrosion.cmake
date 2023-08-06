@@ -571,12 +571,11 @@ endif()
 if(CORROSION_NATIVE_TOOLING)
     if (NOT TARGET Corrosion::Generator )
         add_subdirectory(generator)
-    else()
-        get_property(
-                _CORROSION_GENERATOR_EXE
-                TARGET Corrosion::Generator PROPERTY IMPORTED_LOCATION
-        )
     endif()
+    get_property(
+        _CORROSION_GENERATOR_EXE
+        TARGET Corrosion::Generator PROPERTY IMPORTED_LOCATION
+    )
     set(
 _CORROSION_GENERATOR
             ${CMAKE_COMMAND} -E env
