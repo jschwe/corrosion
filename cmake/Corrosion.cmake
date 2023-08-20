@@ -621,6 +621,129 @@ else()
     set(_CORR_PROP_HOST_BUILD INTERFACE_CORROSION_USE_HOST_BUILD CACHE INTERNAL "")
 endif()
 
+function(_corrosion_create_linker_wrapper lang out_compiler_wrapper_path)
+    if(NOT lang MATCHES "^(C|CXX)$")
+        message(FATAL_ERROR "Internal corrosion error in _corrosion_create_linker_wrapper: lang was ${lang}")
+    endif()
+    set(COMPILER_DRIVER "${CMAKE_${lang}_COMPILER}")
+    set(COMPILER_TARGET "${CMAKE_${lang}_COMPILER_TARGET}")
+    message(STATUS "Creating linker wrapper script to fix cross-linking with `${COMPILER_DRIVER}` for target `${COMPILER_TARGET}`")
+    set("bash_wrapper_template"
+[==[#!/usr/bin/env bash
+
+@COMPILER_DRIVER@ --target=@COMPILER_TARGET@ "${@}"
+]==]
+    )
+    set(rust_wrapper_template
+[==[
+use std::process::Command;
+
+fn main() {
+    let mut args = std::env::args_os();
+    // Strip the first arg (name of self) so we get the same as "${@}" with bash
+    let _our_name = args.next().expect("Corrosion linker driver called with no arguments");
+    let mut handle = Command::new("@COMPILER_DRIVER@")
+        .arg("--target=@COMPILER_TARGET@")
+        .args(args)
+        .spawn()
+        .expect("Failed to spawn");
+    let res = handle.wait().expect("Command wasn't running");
+    let exit_code = res.code().unwrap_or(127);
+    std::process::exit(exit_code);
+}
+
+]==]
+)
+    set(rust_cargo_toml_template
+            [==[[package]
+name = "wrapper"
+version = "0.1.0"
+edition = "2018"
+
+[[bin]]
+name = "compiler-driver"
+path = "main.rs"
+]==]
+    )
+    set(compiler_driver_dir "${CMAKE_CURRENT_BINARY_DIR}/corrosion/compiler_driver/${lang}")
+    file(MAKE_DIRECTORY "${compiler_driver_dir}")
+    # rustc linker-flavor inference parses the linker driver name, so we use the same name as the original
+    get_filename_component(COMPILER_NAME "${COMPILER_DRIVER}" NAME)
+
+    if(CMAKE_HOST_WIN32 OR (CMAKE_VERSION VERSION_LESS "3.20"))
+        set(compiler_driver_main_rs "${compiler_driver_dir}/main.rs")
+        set(compiler_driver_cargo_toml "${compiler_driver_dir}/Cargo.toml")
+
+        file(WRITE "${compiler_driver_main_rs}.in" "${rust_wrapper_template}")
+        file(WRITE "${compiler_driver_cargo_toml}.in" "${rust_cargo_toml_template}")
+        configure_file("${compiler_driver_main_rs}.in" "${compiler_driver_main_rs}" @ONLY)
+        configure_file("${compiler_driver_cargo_toml}.in" "${compiler_driver_cargo_toml}" @ONLY)
+
+        # The name in the Cargo.toml may not contain certain characters, e.g. `clang++` is not valid.
+        # As a workaround we copy to the required filename after building.
+        set(compiler_driver_artifact_path "${compiler_driver_dir}/target/release/compiler-driver")
+        set(compiler_driver_path "${compiler_driver_dir}/${COMPILER_NAME}")
+        execute_process(
+                COMMAND ${CMAKE_COMMAND} -E env
+                "CARGO_BUILD_RUSTC=${_CORROSION_RUSTC}"
+                    "${_CORROSION_CARGO}"
+                            build --release
+                COMMAND_ECHO "STDOUT"
+                # OUTPUT_FILE "${compiler_driver_dir}/build_stdout.log"
+                # ERROR_FILE "${compiler_driver_dir}/build_stderr.log"
+                WORKING_DIRECTORY "${compiler_driver_dir}"
+                RESULT_VARIABLE build_compiler_wrapper_res
+        )
+        if(NOT build_compiler_wrapper_res EQUAL "0")
+            message(FATAL_ERROR "Failed to compile linker wrapper script in ${compiler_driver_dir} with ${build_compiler_wrapper_res}")
+        endif()
+        execute_process(
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${compiler_driver_artifact_path}" "${compiler_driver_path}"
+                COMMAND_ECHO "STDOUT"
+                # OUTPUT_FILE "${compiler_driver_dir}/build_stdout.log"
+                # ERROR_FILE "${compiler_driver_dir}/build_stderr.log"
+                WORKING_DIRECTORY "${compiler_driver_dir}"
+                RESULT_VARIABLE build_compiler_wrapper_res
+        )
+        if(NOT build_compiler_wrapper_res EQUAL "0")
+            message(FATAL_ERROR "Failed to copy linker driver to ${compiler_driver_path}: ${build_compiler_wrapper_res}")
+        endif()
+        if(CMAKE_HOST_WIN32)
+            set(compiler_driver_path "${compiler_driver_path}.exe")
+        endif()
+    else()
+        # requires CMake 3.20
+
+        set(compiler_driver_path "${compiler_driver_dir}/${COMPILER_NAME}")
+        file(CONFIGURE OUTPUT "${compiler_driver_path}"
+            CONTENT "${bash_wrapper_template}"
+            @ONLY
+        )
+        file(CHMOD "${compiler_driver_path}" "${compiler_driver_dir}"
+                FILE_PERMISSIONS
+                "OWNER_READ"
+                "OWNER_WRITE"
+                "OWNER_EXECUTE"
+                "GROUP_READ"
+                "GROUP_EXECUTE"
+                "WORLD_READ"
+                "WORLD_EXECUTE"
+        )
+    endif()
+    set("${out_compiler_wrapper_path}" "${compiler_driver_path}" PARENT_SCOPE)
+endfunction()
+
+if(Rust_CROSSCOMPILING AND (CMAKE_C_COMPILER_TARGET OR CMAKE_CXX_COMPILER_TARGET))
+    if(CMAKE_C_COMPILER_TARGET)
+        _corrosion_create_linker_wrapper(C c_linker_driver)
+        set(_CORR_CROSS_C_LINKER_DRIVER "${c_linker_driver}" CACHE INTERNAL "" FORCE)
+    endif()
+    if(CMAKE_CXX_COMPILER_TARGET)
+        _corrosion_create_linker_wrapper(CXX cxx_linker_driver)
+        set(_CORR_CROSS_CXX_LINKER_DRIVER "${cxx_linker_driver}" CACHE INTERNAL "" FORCE)
+    endif()
+endif()
+
 # Add custom command to build one target in a package (crate)
 #
 # A target may be either a specific bin
@@ -810,19 +933,30 @@ function(_add_cargo_build out_cargo_build_out_dir)
     set(cargo_target_linker $<$<BOOL:${linker}>:${cargo_target_linker_var}=${linker}>)
 
     if(Rust_CROSSCOMPILING AND (CMAKE_C_COMPILER_TARGET OR CMAKE_CXX_COMPILER_TARGET))
-        set(linker_target_triple "$<IF:$<BOOL:${target_uses_cxx}>,${CMAKE_CXX_COMPILER_TARGET},${CMAKE_C_COMPILER_TARGET}>")
-        set(rustflag_linker_arg "-Clink-args=--target=${linker_target_triple}")
-        set(rustflag_linker_arg "$<${if_not_host_build_condition}:${rustflag_linker_arg}>")
-        # Skip adding the linker argument, if the linker is explicitly set, since the
-        # explicit_linker_property will not be set when this function runs.
-        # Passing this rustflag is necessary for clang.
-        corrosion_add_target_local_rustflags("${target_name}" "$<$<NOT:${explicit_linker_defined}>:${rustflag_linker_arg}>")
+        set(cross_linker "$<IF:$<BOOL:${target_uses_cxx}>,${_CORR_CROSS_CXX_LINKER_DRIVER},${_CORR_CROSS_C_LINKER_DRIVER}>")
+        set(cross_linker "$<${if_not_host_build_condition}:${cross_linker}>")
+        set(linker "$<IF:${explicit_linker_defined},${explicit_linker_property},${cross_linker}>")
+        set(cargo_target_linker $<$<BOOL:${linker}>:${cargo_target_linker_var}=${linker}>)
+    else()
+        message(STATUS "Not adding CC args")
     endif()
 
     message(DEBUG "TARGET ${target_name} produces byproducts ${byproducts}")
 
     add_custom_target(
         _cargo-build_${target_name}
+            COMMAND
+            ${CMAKE_COMMAND} -E echo
+            "Environment variables..."
+            "${build_env_variable_genex}"
+            "${global_rustflags_genex}"
+            "${cargo_target_linker}"
+            "${corrosion_cc_rs_flags}"
+            "${cargo_library_path}"
+            COMMAND
+            ${CMAKE_COMMAND} -E echo
+            "local rustflags: ${local_rustflags_genex}"
+
         # Build crate
         COMMAND
             ${CMAKE_COMMAND} -E env

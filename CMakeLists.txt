@@ -10,6 +10,8 @@ project(Corrosion
     HOMEPAGE_URL "https://corrosion-rs.github.io/corrosion/"
 )
 
+message(STATUS "Main project CMAKE_C_COMPILER_TARGET: ${CMAKE_C_COMPILER_TARGET}")
+
 # Default behavior:
 # - If the project is being used as a subdirectory, then don't build tests and
 #   don't enable any languages.

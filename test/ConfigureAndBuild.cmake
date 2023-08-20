@@ -18,6 +18,8 @@ set(oneValueArgs
     C_COMPILER
     CXX_COMPILER
     SYSTEM_NAME
+    C_COMPILER_TARGET
+    CXX_COMPILER_TARGET
     EXTERNAL_CORROSION_GENERATOR
     CARGO_PROFILE
 )
@@ -25,6 +27,7 @@ set(multiValueArgs "PASS_THROUGH_ARGS")
 cmake_parse_arguments(TEST "${options}" "${oneValueArgs}"
                       "${multiValueArgs}" ${TEST_ARG_LIST} )
 
+message(STATUS "ConfigureAndBuild unparsed arguments: ${TEST_UNPARSED_ARGUMENT}")
 if(TEST_CARGO_TARGET)
     set(TEST_Rust_CARGO_TARGET "-DRust_CARGO_TARGET=${TEST_CARGO_TARGET}")
 endif()
@@ -40,6 +43,14 @@ endif()
 if(TEST_CXX_COMPILER)
     set(TEST_CXX_COMPILER "-DCMAKE_CXX_COMPILER=${TEST_CXX_COMPILER}")
 endif()
+message(STATUS "TEST_C_COMPILER_TARGET before if: ${TEST_C_COMPILER_TARGET}, cxx: ${TEST_CXX_COMPILER_TARGET}")
+if(TEST_C_COMPILER_TARGET)
+    set(TEST_C_COMPILER_TARGET "-DCMAKE_C_COMPILER_TARGET=${TEST_C_COMPILER_TARGET}")
+endif()
+if(TEST_CXX_COMPILER_TARGET)
+    set(TEST_CXX_COMPILER_TARGET "-DCMAKE_CXX_COMPILER_TARGET=${TEST_CXX_COMPILER_TARGET}")
+endif()
+message(STATUS "TEST_C_COMPILER_TARGET: ${TEST_C_COMPILER_TARGET}")
 if(TEST_SYSTEM_NAME)
     set(TEST_SYSTEM_NAME "-DCMAKE_SYSTEM_NAME=${TEST_SYSTEM_NAME}")
 endif()
@@ -70,6 +81,8 @@ execute_process(
             ${TEST_GENERATOR_PLATFORM}
             ${TEST_C_COMPILER}
             ${TEST_CXX_COMPILER}
+            ${TEST_C_COMPILER_TARGET}
+            ${TEST_CXX_COMPILER_TARGET}
             ${TEST_SYSTEM_NAME}
             ${TEST_EXTERNAL_CORROSION_GENERATOR}
             ${TEST_CARGO_PROFILE}
@@ -92,6 +105,7 @@ if ("${TEST_GENERATOR}" STREQUAL "Ninja Multi-Config"
                 COMMAND "${CMAKE_COMMAND}"
                     --build "${TEST_BINARY_DIR}"
                     --config "${config}"
+                    --verbose
                 COMMAND_ECHO STDOUT
                 RESULT_VARIABLE EXIT_CODE
         )
@@ -102,7 +116,7 @@ if ("${TEST_GENERATOR}" STREQUAL "Ninja Multi-Config"
     endforeach()
 else()
     execute_process(
-            COMMAND "${CMAKE_COMMAND}" --build "${TEST_BINARY_DIR}"
+            COMMAND "${CMAKE_COMMAND}" --build "${TEST_BINARY_DIR}" --verbose
             COMMAND_ECHO STDOUT
             RESULT_VARIABLE EXIT_CODE
     )
