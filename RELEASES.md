@@ -6,6 +6,7 @@
   [v0.4.0 Release notes](#040-lts-2023-06-01) for more details.
 - Removed native tooling and the corresponding option `CORROSION_NATIVE_TOOLING`.
   Corrosion now always uses pure CMake.
+- The master branch of corrosion now requires Rust 1.56 or newer (likely to increase further before the next release.)
 
 ### New features
 

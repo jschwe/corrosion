@@ -31,7 +31,7 @@ jobs:
           - i686
           - aarch64
         rust:
-          - "1.54.0"
+          - "1.56.0"
         include:
           - arch: x86_64
             vs_version: 2022
@@ -41,7 +41,7 @@ jobs:
             rust: nightly
     with:
       vs_version: "${{ matrix.vs_version}}"
-      rust: 1.54.0
+      rust: 1.56.0
       target_arch: "${{ matrix.arch}}"
 
   windows_ninja_cl:
@@ -65,7 +65,7 @@ jobs:
           - os: windows-2022
             vs_version: vs-2022
             cmake: 3.22.6
-          - rust: 1.54.0
+          - rust: 1.56.0
           # Add variable mapping for ilammy/msvc-dev-cmd action
           - arch: x86_64
             msvc_dev_arch: amd64
@@ -122,7 +122,7 @@ jobs:
           - make
         include:
           - cmake: 3.22.6
-          - rust: 1.54.0
+          - rust: 1.56.0
 
     steps:
       - uses: actions/checkout@v4
@@ -227,7 +227,7 @@ jobs:
         include:
           - os: macos-latest
           - cmake: 3.22.6
-          - rust: 1.54.0
+          - rust: 1.56.0
 
     steps:
       - uses: actions/checkout@v4
@@ -311,7 +311,7 @@ jobs:
           - ubuntu-latest
           - macos-13
         include:
-          - rust: 1.54.0
+          - rust: 1.56.0
 
     steps:
       - uses: actions/checkout@v4
